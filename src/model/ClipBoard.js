@@ -166,6 +166,7 @@ class Clipboard {
             var nodes = JSON.parse(data[1]);
             var _node;
             sNodes.map(node => {
+                node.expand();
                 // 由于粘贴逻辑中为了排除子节点重新排序导致逆序，因此复制的时候倒过来
                 for (var i = nodes.length - 1; i >= 0; i--) {
                     _node = window.minder.createNode(null, node);
