@@ -117,7 +117,8 @@ class App extends React.Component {
       this.props.editorRef(this);
     }
 
-    if (this.props.type === '' && this.props.editor.length !== 0 && this.props.editor.indexOf(this.userName) === -1) {
+    if (this.props.type === '' && !isUndefined(this.props.editor) && 
+        this.props.editor.length !== 0 && this.props.editor.indexOf(this.userName) === -1) {
       this.disableMinder();
     }
 

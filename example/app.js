@@ -16,6 +16,6 @@ const App = () => <ReactDemo
             console.log("sss");
         }
     }
-    type = "record"
+    type = ""
 />
 render(<App />, document.getElementById('root'))
