@@ -199,10 +199,10 @@ class Clipboard {
                 let width = imgInfo.width;
                 let height = imgInfo.height;
                 if (width > 200 && width > height) {
-                    height = 200 * height / width;
+                    height = parseInt(200 * height / width);
                     width = 200;
                 } else if (height > 200 && height > width) {
-                    width = 200 * width / height;
+                    width = parseInt(200 * width / height);
                     height = 200;
                 }
                 window.minder.createNode({ image: imgUrl, imageSize: { width, height } }, node)
