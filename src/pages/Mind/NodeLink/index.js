@@ -2,7 +2,7 @@ import * as React from 'react';
 import { Modal, Tree, Input } from 'antd';
 const { TreeNode } = Tree;
 const { Search } = Input;
-import { partial } from 'lodash';
+import { partial, isUndefined } from 'lodash';
 import * as editorCommand from '../../../command/EditorCommand';
 
 
@@ -78,7 +78,7 @@ class App extends React.Component {
 
         let dataList = [];
         window.minder.getRoot().traverse((node) => {
-            if (node.data.text.indexOf(value) !== -1) {
+            if (!isUndefined(node.data.text) && node.data.text.indexOf(value) !== -1) {
                 dataList.push(node);
             }
         });
@@ -102,9 +102,9 @@ class App extends React.Component {
 
         const loop = data =>
             data.map(item => {
-                const index = item.data.text.indexOf(searchValue);
-                const beforeStr = item.data.text.substr(0, index);
-                const afterStr = item.data.text.substr(index + searchValue.length);
+                const index = (isUndefined(item.data.text) || item.data.text === '') ? -1 : item.data.text.indexOf(searchValue);
+                const beforeStr = isUndefined(item.data.text) ? '' : item.data.text.substr(0, index);
+                const afterStr = isUndefined(item.data.text) ? '' : item.data.text.substr(index + searchValue.length);
                 const text =
                     index > -1 ? (
                         <span>
@@ -113,7 +113,7 @@ class App extends React.Component {
                             {afterStr}
                         </span>
                     ) : (
-                        <span>{item.data.text}</span>
+                        <span>{!isUndefined(item.data.image) && (isUndefined(item.data.text) || item.data.text === '')  ? '[图片]' : item.data.text === '' ? '[无文本]' : item.data.text}</span>
                     );
                 if (item.children) {
                     return (

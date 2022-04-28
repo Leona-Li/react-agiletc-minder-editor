@@ -126,7 +126,7 @@ class App extends React.Component {
 
         const loop = data =>
             data.map(item => {
-                const index = isUndefined(item.data.text) ? -1 : item.data.text.indexOf(searchValue);
+                const index = (isUndefined(item.data.text) || item.data.text === '') ? -1 : item.data.text.indexOf(searchValue);
                 const beforeStr = isUndefined(item.data.text) ? '' : item.data.text.substr(0, index);
                 const afterStr = isUndefined(item.data.text) ? '' : item.data.text.substr(index + searchValue.length);
                 const text =
@@ -137,7 +137,7 @@ class App extends React.Component {
                             {afterStr}
                         </span>
                     ) : (
-                        <span>{isUndefined(item.data.text) ? '[图片]' : item.data.text === '' ? '[无文本]' : item.data.text}</span>
+                        <span>{!isUndefined(item.data.image) && (isUndefined(item.data.text) || item.data.text === '')  ? '[图片]' : item.data.text === '' ? '[无文本]' : item.data.text}</span>
                     );
 
                 if (searchValue === '' && item.children) {
