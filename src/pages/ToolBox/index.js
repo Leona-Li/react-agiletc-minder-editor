@@ -57,12 +57,12 @@ class App extends React.Component {
 
         return (
             <div>
-                <div className='icon-container' onClick={partial(this.setToolbox, true, ((readOnly && type === 'compare') || !readOnly) ? 'review' : 'note')} style={{ display: toolbox ? 'none' : 'block' }} ><Icon className='m-icon' type='bars' /></div>
+                <div className='icon-container' onClick={partial(this.setToolbox, true, 'note')} style={{ display: toolbox ? 'none' : 'block' }} ><Icon className='m-icon' type='bars' /></div>
                 <div className='toolbox-container'
                     style={{ display: toolbox ? 'block' : 'none' }}>
                     <div className='toolbox-icon'>
                         <Tooltip title='锁定后，评审内容不随节点切换而更新'><Icon type={lock ? 'lock' : 'unlock'} className='m-lock' onClick={partial(this.setLock, !lock)} /></Tooltip>
-                        <Icon type='close' className='m-close' onClick={partial(this.setToolbox, false, ((readOnly && type === 'compare') || !readOnly) ? 'review' : 'note')} />
+                        <Icon type='close' className='m-close' onClick={partial(this.setToolbox, false, 'note')} />
                     </div>
                     <Tabs
                         defaultActiveKey='note'

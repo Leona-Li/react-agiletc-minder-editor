@@ -1,7 +1,6 @@
 import { isEqual, unionWith, remove, isNull, isUndefined } from 'lodash';
 import $ from 'jquery';
-import marked from 'marked/lib/marked';
-
+import { marked } from 'marked'
 class ToolBox {
 
     // 构造函数 
