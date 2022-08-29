@@ -11,8 +11,6 @@ import Runtime from './model/Runtime';
 import Navigator from './model/Navigator';
 import NoteRender from './pages/NoteRender';
 import SearchRenderV2 from './pages/SearchRenderV2';
-import ToolBoxRender from './pages/ToolBox';
-import EditUsersRender from './pages/EditUsers';
 import NavigatorRender from './pages/NavigatorRender';
 import ClipBoard from './model/ClipBoard';
 import Mind from './pages/Mind';
@@ -20,10 +18,6 @@ import Exterior from './pages/Exterior';
 import ShotCutModal from './pages/ShotCut';
 import { Input, Tabs, notification, Button, Icon, Spin, Tooltip, Switch, Drawer } from 'antd';
 import { isUndefined, isArray, endsWith } from 'lodash';
-import Websocket from './websocket/Websocket';
-
-
-
 
 class App extends React.Component {
   constructor(props) {
@@ -46,15 +40,15 @@ class App extends React.Component {
       // 是否选中节点
       isNode: false,
       // 主题
-      theme: 'fresh-blue-compat',
+      theme: props.theme || 'fresh-blue-compat',
       // 模板
-      template: '',
+      template: props.template || 'right',
       // 是否存在撤销
       hasUndo: false,
       // 是否存在重做
       hasRedo: false,
       // 工具箱的显示状态
-      toolbox: false,
+      toolbox: true,
       // 工具箱的
       toolboxTab: 'review',
 
@@ -64,13 +58,11 @@ class App extends React.Component {
       zoom: 100,
       triggerActive: true,
       fullScreen: false,
-      tags: ['前置条件', '执行步骤', '预期结果'],
+      tags: props?.tags || [],
       expand: true,
-      websocketStatus: 0,// 0 异常， 1 正常  
       readOnly: props.readOnly || false,
-      spinning: true, // 加载中
+      spinning: false, // 加载中
       caseId: '',
-      userName: '',
       recordId: '',
       editUsers: [],
       isScore: '0',
@@ -81,10 +73,8 @@ class App extends React.Component {
     window.editor = {};
     this.timeoutObj = null;
     this.SPLITOR = '\uFEFF';
-    this.userName = '';
     this.isFirst = true;
   }
-
 
   componentWillUnmount = () => {
     // 清除掉定时上报心跳的定时任务
@@ -98,30 +88,19 @@ class App extends React.Component {
 
 
   componentDidMount = () => {
+    // this.setState({
+    //   caseId: urls[5],
+    //   recordId: urls[6],
+    //   isScore: urls[7],
+    //   userName: this.userName
+    // })
 
-    // 处理caseId 以及userName;
-    // ws://xwcase.gz.cvte.cn/api/case/2245/undefined/0/zsx
-    // this.initData(this.props.wsUrl);
-
-    let urls = this.props.wsUrl.split("/");
-    this.userName = urls[urls.length - 1];
-    window.minder.editor = this.userName;
-    this.setState({
-      caseId: urls[5],
-      recordId: urls[6],
-      isScore: urls[7],
-      userName: this.userName
-    })
+    editorCommand.importJson(this.props.data)
+    editorCommand.handleTemplate(this.state.template)
     // 将实例化对象 传回给父组件
     if (this.props.editorRef) {
       this.props.editorRef(this);
     }
-
-    if (this.props.type === '' && !isUndefined(this.props.editor) && 
-        this.props.editor.length !== 0 && this.props.editor.indexOf(this.userName) === -1) {
-      this.disableMinder();
-    }
-
 
     if (!isUndefined(this.props.tags)) {
       this.setState({
@@ -129,7 +108,6 @@ class App extends React.Component {
       })
     }
 
-    // 
     window.editor = {
       runtime: new Runtime(this),
       hotbox: new HotBox(this),
@@ -141,18 +119,18 @@ class App extends React.Component {
   }
 
 
-  componentWillReceiveProps = (nextProps) => {
-    // 处理当前用户不是编辑人的情况
-    if (nextProps.type === '' && JSON.stringify(nextProps.editor) !== JSON.stringify(this.props.editor)) {
-      if (nextProps.editor.indexOf(this.userName) === -1) {
-        window.minder.disable()
-        this.setState({
-          minderStatus: 'disabled'
-        })
-      }
+  // componentWillReceiveProps = (nextProps) => {
+  //   // 处理当前用户不是编辑人的情况
+  //   if (nextProps.type === '' && JSON.stringify(nextProps.editor) !== JSON.stringify(this.props.editor)) {
+  //     if (nextProps.editor.indexOf(this.userName) === -1) {
+  //       window.minder.disable()
+  //       this.setState({
+  //         minderStatus: 'disabled'
+  //       })
+  //     }
 
-    }
-  }
+  //   }
+  // }
 
 
   /**
@@ -169,9 +147,7 @@ class App extends React.Component {
         [type]: value
       })
     }
-
   }
-
 
   handleChange = (value) => {
     this.setState({
@@ -198,47 +174,17 @@ class App extends React.Component {
 
   /**
    * 设置编辑器的数据
-   * @param {*} value 
+   * @param {*} value
    */
   setEditerData = (value) => {
     editorCommand.importJson(value)
   }
 
 
-  start = () => {
-    this.timeoutObj = setInterval(() => {
-      this.sendMessage('0ping ping ping')
-    }, 10000)
-  }
-
-
-  handleWsOpen = () => {
-    if (this.timeoutObj != null) {
-      clearInterval(this.timeoutObj);
-    }
-
-
-    this.setState({
-      websocketStatus: 1,
-    })
-    this.start();
-
-  }
-
-
-
-  sendMessage = (message) => {
-    if (!isUndefined(this.refWebSocket) && this.refWebSocket !== null) {
-      this.refWebSocket.sendMessage(message);
-    }
-  }
-
-
-
   /**
    * 处理服务端的ws的数据
-   * @param {} message 
-   * @returns 
+   * @param {} message
+   * @returns
    */
   handleWsData = (message) => {
     // 收到当前用户的数据
@@ -320,7 +266,7 @@ class App extends React.Component {
       })
     }
 
-    this.sendMessage("1" + JSON.stringify({ case: this.getAllData(), patch: [diff], }))
+    // this.sendMessage("1" + JSON.stringify({ case: this.getAllData(), patch: [diff], }))
   }
 
 
@@ -344,21 +290,6 @@ class App extends React.Component {
       minderStatus: 'normal'
     })
   }
-
-
-
-  /**
-   * ws 连接断开时
-   * @param {*} e 
-   */
-  handleWsClose = () => {
-    this.setState({
-      websocketStatus: 0,
-    })
-    this.refWebSocket = null;
-    // this.disableMinder()
-  }
-
 
   handleEditPaste = (e) => {
     var clipBoardEvent = e;
@@ -384,8 +315,6 @@ class App extends React.Component {
     } catch (e) {
       console.log(e);
     }
-
-
   }
 
 
@@ -431,46 +360,12 @@ class App extends React.Component {
             <Icon type="question-circle" />
           </Tooltip>
         </ShotCutModal>
-
-        {
-          this.props.readOnly ? null :
-            <Tooltip title={this.state.websocketStatus === 0 ? '当前websocket链接已断开' : (this.props.editor && this.props.editor.indexOf(this.userName) === -1) ? "你没有当前用例的编辑权限" : null}>
-              <Switch
-                onClick={
-                  (checked) => {
-                    if (checked) {
-                      this.disableMinder()
-                    } else {
-                      this.enableMinder();
-                    }
-                  }}
-                disabled={this.state.websocketStatus === 0 || (this.props.editor && this.props.editor.indexOf(this.userName) === -1)}
-                checkedChildren="只读"
-                unCheckedChildren="编辑"
-                checked={this.state.minderStatus !== 'normal'}
-              />
-
-            </Tooltip>
-
-        }
-
-        <span style={{ color: this.state.websocketStatus === 0 ? 'red' : '' }}>{this.state.websocketStatus === 0 && this.props.type !== 'compare' && this.props.type !== 'backup' ? '连接房间异常,请保存数据' : ''}</span>
-        <Button type='link' onClick={() => {
-          // 回调回去父组件的方法
-          if (this.props.onExpandChange) {
-            this.props.onExpandChange(!this.state.expand);
-          }
-          this.setState({ expand: !this.state.expand })
-        }}>
-          <Icon type="double-left" style={{ transform: this.state.expand ? "rotate(90deg)" : "rotate(-90deg)" }} />
-          {this.state.expand ? '收起' : '展开'}
-        </Button>
       </React.Fragment>
       ;
 
     return (
       <div id='kityminder-editor' style={this.props.editorStyle} className="kityminder-editor-container kityminder-editor">
-        {
+        {/* {
           this.props.type !== 'compare' && this.props.type !== 'backup' &&
           <Websocket
             debug={true}
@@ -488,7 +383,7 @@ class App extends React.Component {
               window.websocket = Websocket;
             }}
           />
-        }
+        } */}
         <NoteRender />
 
         {
@@ -502,32 +397,6 @@ class App extends React.Component {
           >
           </SearchRenderV2>
         }
-
-
-
-        {
-          // 在线用户的逻辑不一样，暂时先隐藏起来
-          // <EditUsersRender
-          //   userName={this.state.userName}
-          //   editUsers={this.state.editUsers}
-          // />
-        }
-
-
-        {
-          this.props.readOnly ? null : <ToolBoxRender
-            type={this.props.type}
-            nodeInfo={this.state.nodeInfo}
-            handleState={this.handleState}
-            toolbox={this.state.toolbox}
-            toolboxTab={this.state.toolboxTab}
-            caseId={this.state.caseId}
-            userName={this.state.userName}
-            caseCreator={this.props.caseCreator}
-            readOnly={this.props.readOnly}
-          />
-        }
-
 
         <NavigatorRender
           zoom={this.state.zoom}
@@ -543,7 +412,6 @@ class App extends React.Component {
                   <Mind
                     {...this}
                     onRef={this.onMindRef}
-                    userName={this.state.userName}
                     usedResource={this.state.usedResource}
                     isNode={this.state.isNode}
                     nodeInfo={this.state.nodeInfo}
@@ -552,6 +420,7 @@ class App extends React.Component {
                     hasUndo={this.state.hasUndo}
                     hasRedo={this.state.hasRedo}
                     tags={this.state.tags}
+                    tagDisabledCheck={this.props.tagDisabledCheck}
                     expand={this.state.expand}
                     uploadUrl={this.props.uploadUrl}
                     readOnly={this.state.readOnly}
@@ -575,18 +444,15 @@ class App extends React.Component {
         }
 
 
-
-
         <div id='kityminder-core' tabIndex={-1} className='kityminder-core-container focus'
           ref={(input) => {
             if (!this.minder) {
               this.minder = new window.kityminder.Minder({
                 renderTo: input,
                 enableAnimation: false,
-                defaultTheme: 'fresh-blue-compat'
+                defaultTheme: this.state.theme,
               });
               window.minder = this.minder;
-              window.minder.editor = this.userName;
               window.minder.type = (this.props.type === 'compare' || this.props.type === 'record' || this.props.type === 'backup') ? 'disable' : '';
             }
           }}>

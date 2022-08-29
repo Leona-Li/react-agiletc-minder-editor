@@ -16,6 +16,29 @@ const App = () => <ReactDemo
             console.log("sss");
         }
     }
+    tags={['前置条件', '步骤', '预期']}
+    tagDisabledCheck={()=> {
+      const selectedNode = window.minder.getSelectedNode()
+      const selectedNodeData = selectedNode && selectedNode.getData()
+
+      if (!selectedNodeData) return true
+      const resource = selectedNodeData ? selectedNodeData.resource : null
+
+      return !(selectedNodeData.type === "case" || (resource && resource.indexOf('用例') > -1))
+    }}
+    data={{
+        "root": {
+          "data": {
+            "text": "test111",
+            isApp: true,
+          },
+          "children": [
+            { "data": { "text": "地图" } },
+            { "data": { "text": "百科", "expandState": "collapse" } }
+          ]
+        },
+      }}
     type = ""
+    theme="fresh-green"
 />
 render(<App />, document.getElementById('root'))

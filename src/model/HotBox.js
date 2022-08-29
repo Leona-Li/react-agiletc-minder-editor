@@ -21,13 +21,74 @@ class HotBoxs {
                 action: function () {
                     // 编辑动作
                     window.editor.runtime.handleEdit();
-
                 },
                 label: '编辑',
                 key: 'F2',
                 next: 'idle'
             });
 
+            main.button({
+                position: 'ring',
+                action: function () {
+                    window.editor.runtime.handleAppend("childNode", '分之主题');
+                    editorCommand.handleResource('目录', 0)
+
+                    let selectedNode = minder.getSelectedNode();
+                    selectedNode.setData('type', 'group');
+                },
+                enable: function () {
+                    let node = minder.getSelectedNode();
+
+                    if (!node?.data?.isApp && node?.data?.type !== 'group') {  //如果选中的节点是应用，则不给插入用例
+                        return false;
+                    }
+
+                    return true;
+                },
+                label: '插入目录',
+                key: 'Tab+Shift',
+                next: 'idle'
+            });
+
+            main.button({
+                position: 'ring',
+                action: function () {
+                    window.editor.runtime.handleAppend("childNode", '分之主题');
+                    editorCommand.handleResource('用例', 0)
+                    minder.execCommand('Priority', 1); //默认P0
+
+                    let selectedNode = minder.getSelectedNode();
+                    selectedNode.setData('type', 'case');
+                },
+                enable: function () {
+                    const node = minder.getSelectedNode();
+
+                    if (!node?.data?.isApp && node?.data?.type !== 'group') {  //如果选中的节点是应用，则不给插入用例
+                        return false;
+                    }
+
+                    return minder.queryCommandState('AppendChildNode') != -1;
+                },
+                label: '插入用例',
+                key: 'Tab|Insert',
+                next: 'idle'
+            });
+
+            main.button({
+                position: 'ring',
+                action: function () {
+                    editorCommand.handleRemove();
+
+                },
+                enable: function () {
+                    const node = minder.getSelectedNode();
+
+                    return !node?.data?.isApp
+                },
+                label: '删除',
+                key: 'Delete',
+                next: 'idle'
+            });
 
             main.button({
                 position: 'ring',
@@ -37,28 +98,6 @@ class HotBoxs {
                 },
                 label: '前移',
                 key: 'Alt+Up',
-                next: 'idle'
-            });
-
-            main.button({
-                position: 'ring',
-                action: function () {
-                    window.editor.runtime.handleAppend("childNode");
-
-                },
-                label: '下级',
-                key: 'Tab',
-                next: 'idle'
-            });
-
-            main.button({
-                position: 'ring',
-                action: function () {
-                    window.editor.runtime.handleAppend("siblingNode");
-
-                },
-                label: '同级',
-                key: 'Enter',
                 next: 'idle'
             });
 
@@ -76,34 +115,44 @@ class HotBoxs {
             main.button({
                 position: 'ring',
                 action: function () {
-                    editorCommand.handleRemove();
 
+                    if (!minder.queryCommandState('expand')) {
+                        minder.execCommand('expand');
+                    } else if (!minder.queryCommandState('collapse')) {
+                        minder.execCommand('collapse');
+                    }
                 },
-                label: '删除',
-                key: 'Delete',
+                enable: function () {
+                    return minder.queryCommandState('expand') != -1 || minder.queryCommandState('collapse') != -1;
+                },
+                beforeShow: function () {
+                    if (!minder.queryCommandState('expand')) {
+                        this.$button.children[0].innerHTML = '展开';
+                    } else {
+                        this.$button.children[0].innerHTML = '收起';
+                    }
+                },
+                key: '/',
                 next: 'idle'
             });
-
-            main.button({
-                position: 'ring',
-                action: function () {
-                    window.editor.runtime.handleAppend("parentNode");
-
-                },
-                label: '上级',
-                key: 'Shift+Tab',
-                next: 'idle'
-            });
-
 
             main.button({
                 position: 'bottom',
                 action: function () {
-                    props.handleState('toolbox', true);
-                    props.handleState('toolboxTab', 'note');
+                    window.editor.history.undo()
                 },
-                label: '备注',
-                key: '备注',
+                label: '撤销',
+                key: 'Ctrl + Z',
+                next: 'idle'
+            });
+
+            main.button({
+                position: 'bottom',
+                action: function () {
+                    window.editor.history.redo()
+                },
+                label: '重做',
+                key: 'Ctrl + Y',
                 next: 'idle'
             });
         } else {
@@ -170,7 +219,7 @@ class HotBoxs {
 
     /**
      * 设置执行结果
-     * @param {*} key 
+     * @param {*} key
      */
     handleExecuteResult = (key) => {
         editorCommand.handleResult(key);

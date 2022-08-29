@@ -5,7 +5,7 @@ import { isNull, isUndefined, isEmpty } from 'lodash';
 import $ from 'jquery';
 
 class Runtime {
-    // 构造函数 
+    // 构造函数
     constructor(props) {
 
         this.editNodeId = '';
@@ -33,7 +33,7 @@ class Runtime {
         // 脑图导入完成时，将loading状态去掉
         window.minder.on('layoutallfinish', () => {
             if (this.isInit) {
-                // 获取到所有的标签节点 
+                // 获取到所有的标签节点
                 let usedResource = window.minder.getUsedResource();
                 props.handleState('usedResource', usedResource)
                 props.handleState('spinning', false);
@@ -48,7 +48,7 @@ class Runtime {
         window.minder.on('mousewheel', () => {
             // console.log("鼠标滚轮滚动");
             if (this.isEdit) {
-                this.handleEdit(props.state.editText);   
+                this.handleEdit(props.state.editText);
             }
         })
 
@@ -81,11 +81,11 @@ class Runtime {
             // 双击节点进入编辑状态
             window.minder.on('dblclick', (e) => {
                 if (window.minder.getStatus() === 'normal') {
-                    // 只是选中单个节点 , 这里需要延迟处理，因为kityminder-core会响应双击的操作然后将节点做选中，所以这里需要稍等下 
+                    // 只是选中单个节点 , 这里需要延迟处理，因为kityminder-core会响应双击的操作然后将节点做选中，所以这里需要稍等下
                     setTimeout(() => {
                         this.handleEdit();
                     }, 50)
-                   
+
                 }
             })
         }
@@ -172,7 +172,7 @@ class Runtime {
 
     /**
      * 设置执行结果
-     * @param {*} key 
+     * @param {*} key
      */
     handleExecuteResult = (key) => {
         editorCommand.handleResult(key);
@@ -187,7 +187,7 @@ class Runtime {
 
     /**
      * 添加标签
-     * @param {} value 
+     * @param {} value
      */
     addTag = (value) => {
         if (editorCommand.isNode()) {
@@ -378,7 +378,7 @@ class Runtime {
             return;
         }
 
-        
+
 
 
         if ((e.ctrlKey || e.metaKey) && e.keyCode === 70) { // 撤销Ctrl + F
@@ -452,9 +452,9 @@ class Runtime {
         return false;
     }
 
-    handleAppend = (type) => {
+    handleAppend = (type, text) => {
         this.AppendLock++;
-        editorCommand.handleAppend(type, '');
+        editorCommand.handleAppend(type, text || '');
         setTimeout(this.afterAppend, 300);
         // window.minder.on('layoutallfinish', this.afterAppend);
     }

@@ -37,7 +37,7 @@ const initialState = fromJS({
     triggerActive: true,
     fullScreen: false,
     theme: 'fresh-blue-compat',
-    template: '',
+    template: 'right',
     showTip: false,   //是否显示结果文字
     curIndex: 0,   // 当前处于第一条
     resultNum: 0,  // 搜索结果共几条

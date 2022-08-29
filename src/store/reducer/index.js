@@ -22,9 +22,9 @@ const initialState = {
     // toolbox 是否可见
     toolbox: false,
     // 主题
-    theme: 'fresh-blue-compat',
+    theme: 'fresh-green',
     // 模板
-    template: '',
+    template: 'right',
 
     showTip: false,   //是否显示结果文字
     curIndex: 0,   // 当前处于第一条

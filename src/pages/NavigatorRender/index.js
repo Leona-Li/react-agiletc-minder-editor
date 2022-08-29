@@ -101,7 +101,7 @@ class App extends React.Component {
                 <div className={triggerActive ? 'nav-btn active' : 'nav-btn'} onClick={partial(this.triggerClick)}>
                     <i className='trigger icon' />
                 </div>
-                <div id='nav-previewer' className='nav-previewer' style={{ display: triggerActive ? 'block' : 'none' }}></div>
+                {/* <div id='nav-previewer' className='nav-previewer' style={{ display: triggerActive ? 'block' : 'none' }}></div> */}
             </div >
         );
     }

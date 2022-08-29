@@ -1,10 +1,10 @@
 import config from '../constant/config.minder';
 
 class Navigator {
-    // 构造函数 
+    // 构造函数
     constructor(props) {
         this.props = props;
-        // 字段 
+        // 字段
         this.zoom = 100; // 初始缩放比例
         this.triggerActive = true;
         this.paper;  // 承载缩略图的画布
@@ -28,7 +28,7 @@ class Navigator {
             this.pathHandler = this.getPathHandler(e.theme);
         });
         this.pathHandler = this.getPathHandler(window.minder.getTheme());
-        this.setPaper();
+        // this.setPaper();
     }
 
     setPaper = () => {

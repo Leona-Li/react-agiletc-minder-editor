@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { Icon, Menu, Dropdown, Popover, Tooltip, Button, Select, Tag } from 'antd';
+import { isGroupData, isAppData, isCaseData, isDisableNode, isTagEnable } from '../../common/helpers/utils';
 import './style.less';
 import { partial, isEmpty, isUndefined, isString } from 'lodash';
 import * as editorCommand from '../../command/EditorCommand';
@@ -7,8 +8,6 @@ import HyperLink from './HyperLink';
 import NodeLink from './NodeLink';
 import ImageUpload from './Image';
 import ColorPicker from './ColorPicker';
-
-
 const { Option } = Select;
 
 class App extends React.Component {
@@ -81,7 +80,7 @@ class App extends React.Component {
 
     /**
      * 设置背景颜色
-     * @param {*} color 
+     * @param {*} color
      */
     setBgColor = (color) => {
         // if (!this.props.editable) return;
@@ -92,20 +91,12 @@ class App extends React.Component {
 
     /**
      * 设置字体颜色
-     * @param {}} color 
+     * @param {}} color
      */
     setFontColor = (color) => {
         this.setState({ fontColor: color });
         editorCommand.handleForeColor(color);
     }
-
-    /**
-     * 标签发生变化时
-     */
-    onTagChange = (value) => {
-
-    }
-
 
     /**
      * 清除样式
@@ -168,13 +159,35 @@ class App extends React.Component {
 
     }
 
+    tagCommandDisabled = () => {
+        let minder = window.minder;
+        if (!minder) return true;
+
+        let node = minder.getSelectedNode();
+        if (node && node?.data?.allowDisabledTag) {
+          return false;
+        }
+        if (isDisableNode(minder) && !isTagEnable(minder)) {
+          return true;
+        }
+        if (this.props.tagDisabledCheck) {
+          return this.props.tagDisabledCheck();
+        }
+        return minder.queryCommandState && minder.queryCommandState('resource') === -1;
+    }
 
     renderTags = () => {
         const { isNode, tags } = this.props;
+
         if (!isUndefined(window.minder)) {
+            const isDisabled = this.tagCommandDisabled();
             return tags.map(item => {
                 let color = window.minder.getResourceColor(item).toHEX();
-                return <Tag style={{ cursor: 'pointer' }} onClick={() => { this.onTagSelect(item) }} className={`resource-tag ${isNode ? '' : 'disabled'}`} color={color}>{item}</Tag>
+                return <Tag
+                    onClick={() => { !isDisabled && this.onTagSelect(item) }}
+                    className={`resource-tag ${!isDisabled ? '' : 'disabled'}`}
+                    color={color}
+                >{item}</Tag>
             })
         }
     }
@@ -203,7 +216,7 @@ class App extends React.Component {
 
     /**
      * 设置执行结果
-     * @param {*} key 
+     * @param {*} key
      */
     handleExecuteResult = (key) => {
         editorCommand.handleExecutor(key === 0 ? "" : this.props.userName);
@@ -211,222 +224,179 @@ class App extends React.Component {
         if (this.props.onResultChange) {
             this.props.onResultChange();
         }
-
     }
 
+    /**
+     * 反选
+     */
+    selectRevert = () => {
+        let selected = minder.getSelectedNodes();
+        let selection = [];
+        minder.getRoot().traverse(function (node) {
+          if (selected.indexOf(node) == -1) {
+            selection.push(node);
+          }
+        });
+        minder.select(selection, true);
+        minder.fire('receiverfocus');
+    }
+
+    /**
+     * 选择兄弟节点
+     */
+    selectSiblings = () => {
+        const selected = minder.getSelectedNodes();
+        const selection = [];
+        selected.forEach(function (node) {
+          if (!node.parent) return;
+          node.parent.children.forEach(function (sibling) {
+            if (selection.indexOf(sibling) == -1) selection.push(sibling);
+          });
+        });
+        minder.select(selection, true);
+        minder.fire('receiverfocus');
+    }
+
+    /**
+     * 选择子树
+     */
+    selectTree = () => {
+        const selected = minder.getSelectedNodes();
+        const selection = [];
+        selected.forEach(function (parent) {
+          parent.traverse(function (node) {
+            if (selection.indexOf(node) == -1) selection.push(node);
+          });
+        });
+        minder.select(selection, true);
+        minder.fire('receiverfocus');
+    }
+
+    appendDisabled = () => {
+        try {
+            if (!window.minder) return true;
+        } catch (e) {
+            // 如果window的还没挂载minder，先捕捉undefined异常
+            return true
+        }
+
+        let node = minder.getSelectedNode();
+        const {type} = node?.data || {};
+
+        if (!node) {
+            return true;
+        }
+
+        if (type === "group") {
+            return !isGroupData(node.data)
+        } else if(type==="case"){
+            return !isGroupData(node.data) || isAppData(node.data) //非目录节点，或应用节点，禁用插入用例
+        }
+
+        return false;
+    }
+
+    isCaseNode = () => {
+        let node = window.minder?.getSelectedNode();
+
+        return isCaseData(node?.data || {});
+    }
 
     render() {
-
-
         const { isNode, nodeInfo, hasUndo, hasRedo } = this.props;
 
         const { hyperlink, image, fontColor, bgColor, nodeLink } = this.state;
 
-        var priorityList = [];
-        for (let i = 0; i < 3; i++) {
-            priorityList.push(<Button disabled={!isNode} onClick={partial(this.handlePriority, i + 1)} type='link' size='small' className={'priority-btn p' + String(i + 1)}>P{i}</Button>);
+        const priorityList = [];
+        for (let i = 0; i < 4; i++) {
+            priorityList.push(
+                <Button
+                    disabled={!this.isCaseNode()}
+                    onClick={partial(this.handlePriority, i + 1)}
+                    type='link'
+                    size='small'
+                    className={'priority-btn p' + String(i + 1)}
+                >
+                    P{i}
+                </Button>
+            );
         }
-
-
-
-        // const addChild = () => {
-        //     return <svg t="1635772918855" viewBox="0 0 1056 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="1498" width="1em" height="1em"><path d="M177.202253 262.79646h90.619469v675.115044h-90.619469z" p-id="1499" fill="#595959"></path><path d="M199.85712 847.292035h371.539823v90.619469H199.85712zM571.396943 104.212389h226.548672v90.619469h-226.548672z" p-id="1500" fill="#595959"></path><path d="M643.892518 36.247788h90.619469v226.548672h-90.619469zM526.087208 303.575221H0.494288V0h521.061947v303.575221z m-434.973451-90.619469h339.823009V90.619469H91.113757v122.336283zM1029.025261 1024H503.432341v-303.575221h521.061947v303.575221z m-434.973451-90.619469h339.823009v-122.336283h-339.823009v122.336283z" p-id="1501" fill={isNode ? '#595959' : '#d9d9d9'}></path></svg>
-        // }
-
-        // const addParent = () => {
-        //     return <svg t="1635780580729" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="3552" width="1em" height="1em"><path d="M46.545455 269.963636h93.090909v693.527273H46.545455z" p-id="3553" fill="#595959"></path><path d="M107.054545 870.4h144.29091v93.090909H107.054545zM772.654545 833.163636h232.727273v93.090909h-232.727273z" p-id="3554" fill="#595959"></path><path d="M842.472727 763.345455h93.090909v232.727272h-93.090909zM535.272727 311.854545H0V0h535.272727v311.854545zM93.090909 218.763636h349.090909V93.090909H93.090909v125.672727zM740.072727 1024H218.763636v-311.854545h521.309091V1024z m-432.872727-93.090909H651.636364v-125.672727H307.2V930.909091z" p-id="3555" fill={isNode ? '#595959' : '#d9d9d9'}></path></svg>
-        // }
-
-        // const addSibling = () => {
-        //     return <svg t="1635780669946" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="3757" width="1em" height="1em"><path d="M246.690909 237.381818h93.090909v572.509091h-93.090909zM754.036364 837.818182h232.727272v93.090909h-232.727272z" p-id="3758" fill="#595959"></path><path d="M823.854545 768h93.09091v232.727273h-93.09091zM572.509091 311.854545H37.236364V0h535.272727v311.854545z m-442.181818-93.090909h349.090909V93.090909H130.327273v125.672727zM563.2 1024H23.272727v-311.854545H558.545455V1024z m-446.836364-93.090909H465.454545v-125.672727H116.363636V930.909091z" p-id="3759" fill={isNode ? '#595959' : '#d9d9d9'}></path></svg>
-        // }
-
-
-
-        const hyperlinkMenu = <Menu>
-            <Menu.Item>
-                <a onClick={partial(this.setHyperlink, true)}>{isEmpty(nodeInfo.hyperlink) || isEmpty(nodeInfo.hyperlink.url) ? '插入超链接' : '打开超链接'}</a>
-            </Menu.Item>
-            {
-                isEmpty(nodeInfo.hyperlink) || isEmpty(nodeInfo.hyperlink.url) ? null : <Menu.Item><a onClick={partial(this.handleHyperlink)}>移除超链接</a></Menu.Item>
-            }
-
-            <Menu.Item>
-                <a onClick={partial(this.setNodeLink, true)}>{isEmpty(nodeInfo.nodeLink) ? '插入主题链接' : '打开主题链接'}</a>
-            </Menu.Item>
-
-            {
-                isEmpty(nodeInfo.nodeLink) ? null : <Menu.Item><a onClick={partial(this.handleNodeLink)}>移除主题链接</a></Menu.Item>
-            }
-        </Menu >
-
-        const imageMenu = isEmpty(nodeInfo.image) ? <Menu>
-            <Menu.Item><a onClick={partial(this.setImage, true)}>插入图片</a></Menu.Item>
-        </Menu> : <Menu>
-            <Menu.Item><a onClick={partial(this.setImage, true)}>打开图片</a></Menu.Item>
-            <Menu.Item><a onClick={partial(this.handleImage)}>移除图片</a></Menu.Item>
-        </Menu>
-
-        const commentMenu = <Menu>
-            <Menu.Item><a onClick={partial(this.setNote, true)}>打开备注</a></Menu.Item>
-        </Menu>
-
-
 
         return (
             <div className='minder-container' style={{ height: this.props.expand ? '80px' : '0px' }}>
-                <div className='inline' style={{ width: 70 }}>
+                <Dropdown
+                    overlay={<Menu>
+                        <Menu.Item><a onClick={partial(editorCommand.handleExpand, 1)}>展开到一级节点</a></Menu.Item>
+                        <Menu.Item><a onClick={partial(editorCommand.handleExpand, 2)}>展开到二级节点</a></Menu.Item>
+                        <Menu.Item><a onClick={partial(editorCommand.handleExpand, 3)}>展开到三级节点</a></Menu.Item>
+                        <Menu.Item><a onClick={partial(editorCommand.handleExpand, 4)}>展开到四级节点</a></Menu.Item>
+                        <Menu.Item><a onClick={partial(editorCommand.handleExpand, 5)}>展开到五级节点</a></Menu.Item>
+                        <Menu.Item><a onClick={partial(editorCommand.handleExpand, 6)}>展开到六级节点</a></Menu.Item>
+                        <Menu.Item><a onClick={partial(editorCommand.handleExpand, 99)}>全部展开</a></Menu.Item>
+                    </Menu>}
+                >
+                    <div><a className='block km-btn-item expand' /><span>展开</span><Icon className='caret' type='caret-down' /></div>
+                </Dropdown>
+
+                <Dropdown
+                    overlay={<Menu>
+                        <Menu.Item><a onClick={this.selectRevert}>反选</a></Menu.Item>
+                        <Menu.Item><a onClick={this.selectSiblings}>选择兄弟节点</a></Menu.Item>
+                        <Menu.Item><a onClick={this.selectTree}>选择子树</a></Menu.Item>
+                    </Menu>}
+                >
+                    <div><a className='block km-btn-item expand' /><span>全选</span><Icon className='caret' type='caret-down' /></div>
+                </Dropdown>
+
+                <div className='inline'>
                     <Button
                         onClick={() => {
-                            window.editor.history.undo()
+                            window.editor.runtime.handleAppend("childNode", '分之主题');
+                            editorCommand.handleResource('目录', 0)
+
+                            let selectedNode = minder.getSelectedNode();
+                            selectedNode.setData('type', 'group');
                         }}
+                        disabled={this.appendDisabled()}
                         type='link'
                         icon='left-circle'
                         size='small'
-                        disabled={!hasUndo}
                     >
-                        撤销
+                        插入目录
                     </Button>
                     <Button
                         onClick={() => {
-                            window.editor.history.redo()
+                            window.editor.runtime.handleAppend("childNode", '分之主题');
+                            editorCommand.handleResource('用例', 0)
+                            minder.execCommand('Priority', 1); //默认P0
+
+                            let selectedNode = minder.getSelectedNode();
+                            selectedNode.setData('type', 'case');
                         }}
                         type='link'
                         icon='right-circle'
                         size='small'
-                        disabled={!hasRedo}
+                        disabled={this.appendDisabled()}
                     >
-                        重做
-                    </Button>
-                </div>
-                {/* {
-                    this.props.readOnly ? null : <div className='inline' style={{ width: 200 }}>
-                        <Button
-                            type='link'
-                            size='small'
-                            disabled={!isNode}
-                            onClick={() => { window.editor.runtime.handleAppend("childNode"); }}
-                        >
-                            <Icon component={addChild}></Icon>
-                            插入下级
-                        </Button>
-                        <Button
-                            type='link'
-                            size='small'
-                            disabled={!isNode}
-                            onClick={() => { window.editor.runtime.handleAppend("parentNode"); }}
-                        >
-                            <Icon component={addParent}></Icon>
-                            插入上级
-                        </Button>
-                        <Button
-                            type='link'
-                            size='small'
-                            disabled={!isNode}
-                            onClick={() => { window.editor.runtime.handleAppend("siblingNode"); }}
-                        >
-                            <Icon component={addSibling}></Icon>
-                            插入同级
-                        </Button>
-                    </div>
-                } */}
-
-
-                {/* <div className='inline' style={{ width: 64 }}>
-                    <Button
-                        onClick={() => {
-                            editorCommand.handleUp();
-                        }}
-                        type='link'
-                        icon='arrow-up'
-                        size='small'
-                        disabled={!isNode}
-                    >
-                        上移
-                    </Button>
-                    <Button
-                        onClick={() => {
-                            editorCommand.handleDown();
-                        }}
-                        type='link'
-                        icon='arrow-down'
-                        size='small'
-                        disabled={!isNode}
-                    >
-                        下移
+                        插入用例
                     </Button>
                 </div>
 
+                <Button
+                    onClick={() => {
+                        editorCommand.handleRemove();
+                    }}
+                    type='link'
+                    icon='right-circle'
+                    size='small'
+                    disabled={() => {
+                        const node = minder.getSelectedNode();
+                        return !node?.data?.isApp
+                    }}
+                >
+                    删除
+                </Button>
 
-                 */
-
-                    // <Dropdown overlay={caseReviewMeun} trigger={['click']} disabled={!isNode}>
-                    //             <Button
-                    //                 type='link'
-                    //                 size='small'
-                    //                 className='big-icon'
-
-                    //             >
-                    //                 <Icon style={{ fontSize: "1.6em" }} type="file-text" />
-                    //                 <br />
-                    //                 评审
-                    //                 <Icon type="down" />
-                    //             </Button>
-                    //         </Dropdown>
-
-                }
-
-                <div className='inline' style={{ textAlign: 'center', width: 200 }}>
-                    {
-                        !this.props.readOnly ? null :
-                            <Dropdown overlay={commentMenu} trigger={['click']} disabled={!isNode}>
-                                <Button
-                                    type='link'
-                                    size='small'
-                                    className='big-icon'
-
-                                >
-                                    <Icon style={{ fontSize: "1.6em" }} type="file-text" />
-                                    <br />
-                                    备注
-                                    <Icon type="down" />
-                                </Button>
-                            </Dropdown>
-                    }
-
-
-
-                    <Dropdown overlay={hyperlinkMenu} trigger={['click']} disabled={!isNode}>
-                        <Button
-                            type='link'
-                            size='small'
-                            className='big-icon'
-
-                        >
-                            <Icon style={{ fontSize: "1.6em" }} type="link" />
-                            <br />
-                            链接
-                            <Icon type="down" />
-                        </Button>
-                    </Dropdown>
-                    {
-                        <Dropdown overlay={imageMenu} trigger={['click']} disabled={!isNode}>
-                            <Button
-                                type='link'
-                                size='small'
-                                className='big-icon'
-
-                            >
-                                <Icon style={{ fontSize: "1.6em" }} type="picture" />
-                                <br />
-                                图片
-                                <Icon type="down" />
-                            </Button>
-                        </Dropdown>
-
-                    }
-
-                </div>
                 {
                     // 执行用例的结果
                     this.props.readOnly ? <div className='inline' style={{ width: 150 }}>
@@ -461,16 +431,13 @@ class App extends React.Component {
                     </div> : null
                 }
 
-
                 {
-
                     this.props.readOnly ? null : <>
                         <div className='inline' style={{ width: 120 }}>
-                            <li key={0} style={{ cursor: 'pointer' }} onClick={partial(this.handlePriority, 0)} className={'km-priority-item2 priority-icon priority-0'}></li>
                             {priorityList}
                         </div>
 
-                        <div className='inline' style={{ width: 45 }}>
+                        {/* <div className='inline' style={{ width: 45 }}>
                             <div>
                                 <Button
                                     onClick={
@@ -505,10 +472,9 @@ class App extends React.Component {
                                     </span>
                                 </Popover>
                             </div>
+                        </div> */}
 
-                        </div>
-
-                        <div className='inline' style={{ width: 80 }}>
+                        {/* <div className='inline' style={{ width: 80 }}>
                             <Button
                                 disabled={!isNode}
                                 type='link'
@@ -520,16 +486,11 @@ class App extends React.Component {
                                 <br />
                                 清除样式
                             </Button>
-
-                        </div>
+                        </div> */}
                     </>
                 }
 
-
-
-
-
-                <div className='inline' style={{ width: 50 }}>
+                {/* <div className='inline' style={{ width: 50 }}>
                     <Button
                         type='link'
                         size='small'
@@ -541,7 +502,7 @@ class App extends React.Component {
                         搜索
                     </Button>
 
-                </div>
+                </div> */}
                 {
                     this.props.readOnly ? null :
                         <div style={{ marginLeft: 5 }}>
@@ -549,32 +510,9 @@ class App extends React.Component {
                                 <div className='inline' style={{ width: 220 }}>
                                     {this.renderTags()}
                                 </div>
-
-                                <div className='inline' style={{ width: 220 }}>
-                                    <Select
-                                        mode="tags"
-                                        size='small'
-                                        maxTagCount={1}
-                                        disabled={!isNode}
-                                        style={{ width: 200 }}
-                                        value={this.state.currentResource.filter(item => typeof (item) === 'string' && item !== '已审' && item !== '待审')}
-                                        onSelect={this.onTagSelect}
-                                        onDeselect={this.onTagDeSelect}
-                                        onChange={this.onTagChange}
-                                        placeholder='请输入/选择自定义标签'>
-                                        {
-                                            !isNode || this.props.usedResource.filter(item => typeof (item) === 'string' && item !== '已审' && item !== '待审').map(item => {
-                                                return <Option key={item}>{item}</Option>
-                                            })
-                                        }
-                                    </Select>
-                                </div>
-
                             </div>
                         </div>
                 }
-
-
 
                 <HyperLink
                     nodeInfo={nodeInfo}
@@ -582,15 +520,12 @@ class App extends React.Component {
                     onCancel={this.setHyperlink}
                 />
 
-
                 <NodeLink
                     nodeInfo={nodeInfo}
                     visible={nodeLink}
                     onCancel={this.setNodeLink}
                 >
-
                 </NodeLink>
-
 
                 <ImageUpload
                     uploadUrl = {this.props.uploadUrl}
@@ -598,15 +533,10 @@ class App extends React.Component {
                     visible={image}
                     onCancel={this.setImage}
                 >
-
-
                 </ImageUpload>
             </div>
         );
     }
 }
-
-
-
 
 export default App

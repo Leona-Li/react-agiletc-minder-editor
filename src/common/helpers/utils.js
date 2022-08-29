@@ -130,3 +130,45 @@ export function loadImageSize(url) {
         img.src = url;
     })
 }
+
+export function isDisableNode(minder) {
+    let node = undefined;
+    if (minder && minder.getSelectedNode) {
+      node = minder.getSelectedNode();
+    }
+    if (node && node?.data?.disable === true) {
+      return true;
+    }
+    return false;
+}
+
+/**
+ * 判断是否是目录node
+ * @param node.data
+ */
+ export function isGroupData(data) {
+    const resource = data ? data.resource : null
+    return data.type === "group" || (resource && resource.indexOf("目录") > -1)
+}
+
+export function isAppData(data) {
+    const resource = data ? data.resource : null
+    return data.isApp || (resource && resource.indexOf("应用") > -1)
+}
+
+export function isCaseData(data) {
+    const resource = data ? data.resource : null
+    return data.type === "case" || (resource && resource.indexOf("用例") > -1)
+}
+
+export function isTagEnable(minder) {
+    let node = undefined;
+    if (minder && minder.getSelectedNode) {
+      node = minder.getSelectedNode();
+    }
+    if (node && node?.data?.tagEnable === true) {
+      return true;
+    }
+    return false;
+}
+
