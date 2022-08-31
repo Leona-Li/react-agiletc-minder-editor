@@ -3,7 +3,7 @@ import './style.less';
 import { partial } from 'lodash';
 import * as editorCommand from '../../command/EditorCommand';
 import config from './../../constant/config.minder';
-import { Icon } from 'antd';
+import { Icon, Tooltip } from 'antd';
 
 // interface IProps {
 //     zoom: number,
@@ -87,20 +87,35 @@ class App extends React.Component {
         const { zoom, triggerActive, fullScreen } = this.props;
         return (
             <div className='navigator-container'>
-                <Icon type={fullScreen || realFullScreen ? 'fullscreen-exit' : 'fullscreen'} className='nav-icon' onClick={partial(this.fullScreenClick)} />
-                <div className='nav-btn' onClick={partial(this.zoomIn)}><i className='zoom-in icon' /></div>
+                {/* <Icon type={fullScreen || realFullScreen ? 'fullscreen-exit' : 'fullscreen'} className='nav-icon' onClick={partial(this.fullScreenClick)} /> */}
+                <Tooltip title="放大(ctrl +)">
+                    <div className='nav-btn' onClick={partial(this.zoomIn)}>
+                        <i className='zoom-in icon' />
+                    </div>
+                </Tooltip>
+
                 <div className='zoom-pan' style={{ height: this.height }}>
-                    <div className='origin' style={{ transform: 'translate(0, ' + this.getHeight(100) + 'px)' }} onClick={partial(this.zoom, 100)}></div>
+                    {/* <div className='origin' style={{ transform: 'translate(0, ' + this.getHeight(100) + 'px)' }} onClick={partial(this.zoom, 100)}></div> */}
                     <div className='indicator' style={{ transform: 'translate(0, ' + this.getHeight(zoom) + 'px)', transition: 'transform 200ms' }}></div>
                 </div>
-                <div className='nav-btn' onClick={partial(this.zoomOut)}><i className='zoom-out icon' /></div>
-                <div className={handActive ? 'nav-btn active' : 'nav-btn'} onClick={partial(this.handClick)}>
-                    <i className='hand icon' />
-                </div>
-                <div className='nav-btn' onClick={partial(editorCommand.cameraRoot)}><i className='camera icon' /></div>
-                <div className={triggerActive ? 'nav-btn active' : 'nav-btn'} onClick={partial(this.triggerClick)}>
+
+                <Tooltip title="缩小(ctrl -)">
+                    <div className='nav-btn' onClick={partial(this.zoomOut)}><i className='zoom-out icon' /></div>
+                </Tooltip>
+
+                <Tooltip title="拖拽">
+                    <div className={handActive ? 'nav-btn active' : 'nav-btn'} onClick={partial(this.handClick)}>
+                        <i className='hand icon' />
+                    </div>
+                </Tooltip>
+
+                <Tooltip title="点击快速定位到根节点(或双击空白)" placement="topRight">
+                    <div className='nav-btn' onClick={partial(editorCommand.cameraRoot)}><i className='camera icon' /></div>
+                </Tooltip>
+
+                {/* <div className={triggerActive ? 'nav-btn active' : 'nav-btn'} onClick={partial(this.triggerClick)}>
                     <i className='trigger icon' />
-                </div>
+                </div> */}
                 {/* <div id='nav-previewer' className='nav-previewer' style={{ display: triggerActive ? 'block' : 'none' }}></div> */}
             </div >
         );

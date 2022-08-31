@@ -185,7 +185,60 @@ const config = {
     resourceColor: [{ bgColor: '#BF1E1B', fontColor: '#FFF' }, { bgColor: '#7a00f2', fontColor: '#FFF' }, { bgColor: '#2760f2', fontColor: '#FFF' }, { bgColor: '#63ABF7', fontColor: '#FFF' },
     { bgColor: '#71CB2D', fontColor: '#FFF' }, { bgColor: '#50c28b', fontColor: '#FFF' }, { bgColor: '#FF9F1A', fontColor: '#FFF' }, { bgColor: '#30BFBF', fontColor: '#FFF' }, { bgColor: '#444444', fontColor: '#FFF' },
     { bgColor: '#6d6d6d', fontColor: '#FFF' }, { bgColor: '#F4F4F4', fontColor: '#333333' }, { bgColor: '#D6F0F8', fontColor: '#276F86' }
-    ]
+    ],
+    customCtTheme: {
+        'background': '#FAFBFC',
+
+        'root-color': '#202D40',
+        'root-background': '#F4F8FF',
+        'root-stroke': '#7CA3FF',
+        'root-stroke-width': 1.5,
+        'root-font-size': 16,
+        'root-padding': [12, 24],
+        'root-margin': [30, 100],
+        'root-radius': 5,
+        'root-space': 10,
+
+        'main-color': '#202D40',
+        'main-background': '#F4F8FF',
+        'main-stroke': '#7CA3FF',
+        'main-stroke-width': 1.5,
+        'main-font-size': 13,
+        'main-padding': [8, 20],
+        'main-margin': 20,
+        'main-radius': 3,
+        'main-space': 5,
+
+        'sub-color': 'black',
+        'sub-background': 'transparent',
+        'sub-stroke': 'none',
+        'sub-font-size': 12,
+        'sub-padding': [5, 10],
+        'sub-margin': [15, 20],
+        'sub-radius': 5,
+        'sub-space': 5,
+
+        'connect-color': 'rgb(83, 134, 254,0.8)',
+        'connect-width': 1,
+        'connect-radius': 5,
+
+        'selected-stroke': '#5386FE',
+        'selected-stroke-width': 3,
+        // 'blur-selected-stroke': hsl(h, 10, 60),
+
+        // 'marquee-background': hsl(h, 100, 80).set('a', 0.1),
+        // 'marquee-stroke': hsl(h, 37, 60),
+
+        // 'drop-hint-color': hsl(h, 26, 35),
+        // 'drop-hint-width': 5,
+
+        // 'order-hint-area-color': hsl(h, 100, 30).set('a', 0.5),
+        // 'order-hint-path-color': hsl(h, 100, 25),
+        // 'order-hint-path-width': 1,
+
+        'text-selection-color': '#202D40',
+        'line-height':1.5
+    }
 }
 
 export default config;

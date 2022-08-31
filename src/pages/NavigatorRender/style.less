@@ -1,15 +1,17 @@
 .navigator-container {
     position: absolute;
-    width: 35px;
-    height: 243px;
-    padding: 5px 0;
-    left: 0px;
-    bottom: 0px;
-    background: #fc8383;
+    padding: 12px 12px 20px;
+    left: 20px;
+    bottom: -60px;
+    background: #E6E9ED;
     color: #fff;
     border-radius: 4px;
     z-index: 10;
     box-shadow: 3px 3px 10px rgba(0, 0, 0, 0.2);
+    border: 1px solid #FFFFFF;
+    box-shadow: 0px 0px 1px rgba(9, 30, 66, 0.1), 0px 6px 12px rgba(9, 30, 66, 0.1);
+    border-radius: 8px;
+
 
     .nav-icon {
         font-size: 25px;
@@ -17,40 +19,45 @@
     }
 
     .nav-btn {
-        width: 35px;
-        height: 24px;
-        line-height: 24px;
+        width: 16px;
+        height: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
         text-align: center;
+        background: #FFFFFF;
+        box-shadow: 0px 4px 8px rgba(32, 45, 64, 0.05), 0px 1px 4px rgba(32, 45, 64, 0.08);
+        border-radius: 18px;
+        cursor: pointer;
+        margin-top: 8px;
 
         &.active {
-            background-color: #5A6378;
+            background-color: #B1D0FD;
         }
     }
 
     .icon {
-        background: url(../../assets/images/icons.png) no-repeat;
         display: block;
+        width: 8px;
+        height: 8px;
     }
 
     .zoom-in {
-        background-position: 0 -730px;
-        width: 20px;
-        height: 20px;
-        margin: 2px auto;
+        background: url(../../assets/images/navigator/plus_circle.png) no-repeat;
     }
 
     .zoom-pan {
-        width: 2px;
+        width: 6px;
         //height: 70px;
-        box-shadow: 0 1px #E50000;
         position: relative;
         background: white;
-        margin: 3px auto;
+        margin: 8px auto 0;
         overflow: visible;
+        border-radius: 7px;
 
         .origin {
             position: absolute;
-            width: 20px;
+            width: 6px;
             height: 8px;
             left: -9px;
             margin-top: -4px;
@@ -72,8 +79,9 @@
             position: absolute;
             width: 8px;
             height: 8px;
-            left: -3px;
-            background: white;
+            background: #B1D0FD;
+            border: 1px solid #257EFA;
+            left: -1px;
             border-radius: 100%;
             margin-top: -4px;
         }
@@ -81,24 +89,15 @@
     }
 
     .zoom-out {
-        background-position: 0 -750px;
-        width: 20px;
-        height: 20px;
-        margin: 2px auto;
+        background: url(../../assets/images/navigator/minus_circle.png) no-repeat;
     }
 
     .hand {
-        background-position: 0 -770px;
-        width: 25px;
-        height: 25px;
-        margin: 0 auto;
+        background: url(../../assets/images/navigator/move.png) no-repeat;
     }
 
     .camera {
-        background-position: 0 -870px;
-        width: 25px;
-        height: 25px;
-        margin: 0 auto;
+        background: url(../../assets/images/navigator/aim.png) no-repeat;
     }
 
     .trigger {

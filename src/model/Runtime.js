@@ -218,23 +218,23 @@ class Runtime {
 
             // 需要判断某些情况下不响应快捷键
             if (document.activeElement.id.indexOf('disableKeydown') !== -1) return;
-            if (e.shiftKey && e.keyCode === 9) {  // 父级主题shift + Tab
-                this.handleAppend('parentNode');
+            if (e.shiftKey && e.keyCode === 9) {  // shift + Tab：插入目录
+                this.handleAppendFolder();
                 e.stopPropagation();
                 e.preventDefault();
                 window.editor.hotbox.idle();
                 return;
             }
 
-            if (e.keyCode === 9 && !e.shiftKey) { // 下级主题Tab
-                this.handleAppend('childNode');
+            if (e.keyCode === 9 && !e.shiftKey) { // Tab：插入用例
+                this.handleAppendCase();
                 e.stopPropagation();
                 e.preventDefault();
                 window.editor.hotbox.idle();
                 return;
             }
-            if (e.keyCode === 13) {  // 同级主题Enter
-                this.handleAppend('siblingNode');
+            if (e.keyCode === 13) {  // Enter：子节点
+                this.handleAppendCaseChild();
                 e.stopPropagation();
                 e.preventDefault();
                 window.editor.hotbox.idle();
@@ -457,6 +457,55 @@ class Runtime {
         editorCommand.handleAppend(type, text || '');
         setTimeout(this.afterAppend, 300);
         // window.minder.on('layoutallfinish', this.afterAppend);
+    }
+
+    handleAppendFolder = () => {
+        const node = minder.getSelectedNode();
+
+        if (!node?.data?.isApp && node?.data?.type !== 'group') {
+            return;
+        }
+
+        this.handleAppend("childNode", '分之主题');
+        editorCommand.handleResource('目录', 0)
+
+        const selectedNode = minder.getSelectedNode();
+        selectedNode.setData('type', 'group');
+    }
+
+    handleAppendCase = () => {
+        const node = minder.getSelectedNode();
+
+        if (!node?.data?.isApp && node?.data?.type !== 'group') {
+            return false;
+        }
+
+        this.handleAppend("childNode", '分之主题');
+        editorCommand.handleResource('用例', 0)
+        minder.execCommand('Priority', 1); //默认P0
+
+        let selectedNode = minder.getSelectedNode();
+        selectedNode.setData('type', 'case');
+    }
+
+    handleAppendCaseChild = () => {
+        const node = minder.getSelectedNode();
+
+        if (node?.data?.type !== 'case' && (node?.data?.type !== 'step' || node?.children?.length)) {
+            return;
+        }
+
+        this.handleAppend("childNode", '分之主题');
+
+        const selectedNode = minder.getSelectedNode();
+
+        if (selectedNode?.parent?.data?.type === 'case') {
+            selectedNode.setData('type', 'step');
+        }
+
+        if (selectedNode?.parent?.data?.type === 'step') {
+            selectedNode.setData('type', 'result');
+        }
     }
 
     afterAppend = () => {

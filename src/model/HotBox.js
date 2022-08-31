@@ -30,11 +30,7 @@ class HotBoxs {
             main.button({
                 position: 'ring',
                 action: function () {
-                    window.editor.runtime.handleAppend("childNode", '分之主题');
-                    editorCommand.handleResource('目录', 0)
-
-                    let selectedNode = minder.getSelectedNode();
-                    selectedNode.setData('type', 'group');
+                    window.editor.runtime.handleAppendFolder();
                 },
                 enable: function () {
                     let node = minder.getSelectedNode();
@@ -53,12 +49,7 @@ class HotBoxs {
             main.button({
                 position: 'ring',
                 action: function () {
-                    window.editor.runtime.handleAppend("childNode", '分之主题');
-                    editorCommand.handleResource('用例', 0)
-                    minder.execCommand('Priority', 1); //默认P0
-
-                    let selectedNode = minder.getSelectedNode();
-                    selectedNode.setData('type', 'case');
+                    window.editor.runtime.handleAppendCase();
                 },
                 enable: function () {
                     const node = minder.getSelectedNode();
@@ -71,6 +62,29 @@ class HotBoxs {
                 },
                 label: '插入用例',
                 key: 'Tab|Insert',
+                next: 'idle'
+            });
+
+            main.button({
+                position: 'ring',
+                action: function () {
+                    window.editor.runtime.handleAppendCaseChild();
+                },
+                enable: function () {
+                    const node = minder.getSelectedNode();
+
+                    if (node?.data?.type === 'case') {
+                        return true;
+                    }
+
+                    if (node?.data?.type === 'step' && !node?.children?.length) {
+                        return true;
+                    }
+
+                    return false;
+                },
+                label: '插入下级',
+                key: 'Enter',
                 next: 'idle'
             });
 

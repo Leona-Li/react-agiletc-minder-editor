@@ -4,6 +4,8 @@ import 'kity';
 import './assets/kityminder-core/kityminder.core.js';
 import './assets/kityminder-core/kityminder.core.css';
 import * as editorCommand from './command/EditorCommand';
+import config from './constant/config.minder';
+import { isCaseData } from './common/helpers/utils';
 import HotBox from './model/HotBox';
 import History from './model/History';
 import ToolBox from './model/ToolBox';
@@ -74,6 +76,8 @@ class App extends React.Component {
     this.timeoutObj = null;
     this.SPLITOR = '\uFEFF';
     this.isFirst = true;
+
+    kityminder.Theme.register('custom-ct', config.customCtTheme)
   }
 
   componentWillUnmount = () => {
@@ -352,6 +356,11 @@ class App extends React.Component {
     }
   }
 
+  isCaseOfSelNode = () => {
+    const sel = window?.minder?.getSelectedNode();
+    return sel && isCaseData(sel.data);
+  }
+
   render() {
     const operations =
       <React.Fragment>
@@ -424,6 +433,7 @@ class App extends React.Component {
                     expand={this.state.expand}
                     uploadUrl={this.props.uploadUrl}
                     readOnly={this.state.readOnly}
+                    fullScreen={this.state.fullScreen}
                     handleState={this.handleState}
                     onResultChange={this.onResultChange}
                   />
@@ -459,9 +469,11 @@ class App extends React.Component {
 
           <Spin spinning={this.state.spinning} style={{ position: 'absolute', width: '100%', marginTop: 300, zIndex: 10002 }} />
 
+          <Button type='primary' className='save-btn' onClick={this.props.save}>保存</Button>
+
           <div
             id='node-input-container'
-            style={{ display: 'none', maxWidth: '300px', }}
+            style={{ display: 'none', maxWidth: '300px', marginLeft: this.isCaseOfSelNode() ? '40px' : 0 }}
             className='m-input'>
             <Input.TextArea
               id='core-node-input-disableKeydown'
